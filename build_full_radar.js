@@ -87,6 +87,7 @@ async function main() {
           r: (b.ring || "").toLowerCase(),
           n: b.isNew === "TRUE",
           s: b.status || null,
+          d: b.description || ""
         });
         count++;
       }
@@ -248,6 +249,14 @@ a{color:var(--accent);text-decoration:none}
 .detail-history .step-ring{padding:3px 10px;border-radius:5px;font-size:11px;font-weight:600;text-transform:uppercase}
 .detail-history .step-vol{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
 .detail-history .arrow{color:var(--text3)}
+.detail-history .arrow{color:var(--text3)}
+
+/* Detail Description */
+.detail-desc { font-size: 13px; color: var(--text2); line-height: 1.5; margin: 12px 0; max-height: 180px; overflow-y: auto; padding-right: 10px; }
+.detail-desc::-webkit-scrollbar { width: 6px; }
+.detail-desc::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.detail-desc a { color: var(--accent); text-decoration: underline; text-decoration-color: rgba(124,77,255,.4); }
+.detail-desc a:hover { text-decoration-color: var(--accent); }
 
 /* Markers */
 .item-chip.mark-known { border-left: 3px solid #00e676; padding-left: 9px; }
@@ -322,6 +331,7 @@ a{color:var(--accent);text-decoration:none}
       <button class="detail-close" id="detail-close">✕</button>
     </div>
     <div class="detail-history" id="detail-history"></div>
+    <div class="detail-desc" id="detail-desc"></div>
     <div class="detail-actions">
       <button class="btn-action" id="btn-mark-known">✓ Mark as Known</button>
       <button class="btn-action" id="btn-mark-learn">★ Mark To Learn</button>
@@ -547,6 +557,15 @@ function showDetail(name, quad) {
       a.r + '</span><span class="step-vol">V' + a.v + ' (' + (vol ? vol.date : '') + ')' +
       (a.n ? ' 🆕' : '') + '</span></span>' + arrow;
   }).join('');
+  
+  const filteredHistory = item.h.filter(hh => hh.v <= currentVol);
+  const latestEntry = filteredHistory[filteredHistory.length - 1];
+  const descEl = document.getElementById('detail-desc');
+  if (latestEntry && latestEntry.d) {
+    descEl.innerHTML = latestEntry.d;
+  } else {
+    descEl.innerHTML = '<em>No description available for this volume.</em>';
+  }
   
   const mark = markers[name + "|||" + quad];
   document.getElementById('btn-mark-known').className = 'btn-action' + (mark === 'known' ? ' active-known' : '');
