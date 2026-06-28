@@ -495,7 +495,7 @@ function render() {
         const mark = markers[item.name + "|||" + item.quadrant];
         const markClass = mark ? ' mark-' + mark : '';
         const esc = item.name.replace(/"/g, '&quot;').replace(/</g, '&lt;');
-        html += '<span class="item-chip ' + chipClass + markClass + '" data-name="' + esc + '" data-quad="' + item.quadrant + '">';
+        html += '<span class="item-chip ' + chipClass + markClass + '" data-name="' + esc + '" data-quad="' + item.quadrant + '" tabindex="0">';
         html += esc + extra + '</span>';
       }
       html += '</div></div>';
@@ -519,6 +519,14 @@ function render() {
       showTooltip(e, chip.dataset.name, chip.dataset.quad);
     });
     chip.addEventListener('mouseleave', () => {
+      hoveredItem = null;
+      tooltipEl.classList.remove('visible');
+    });
+    chip.addEventListener('focus', (e) => {
+      hoveredItem = { name: chip.dataset.name, quad: chip.dataset.quad };
+      showTooltip(e, chip.dataset.name, chip.dataset.quad);
+    });
+    chip.addEventListener('blur', () => {
       hoveredItem = null;
       tooltipEl.classList.remove('visible');
     });
@@ -645,7 +653,12 @@ document.getElementById('btn-mark-clear').addEventListener('click', () => {
 document.addEventListener('keydown', (e) => {
   if (e.target.matches('input')) return;
 
-  const target = hoveredItem || selectedItem;
+  const active = document.activeElement;
+  let target = hoveredItem || selectedItem;
+  if (!target && active && active.classList.contains('item-chip')) {
+    target = { name: active.dataset.name, quad: active.dataset.quad };
+  }
+
   if (target) {
     const key = e.key.toLowerCase();
     const mapKey = target.name + "|||" + target.quad;
@@ -656,11 +669,26 @@ document.addEventListener('keydown', (e) => {
     else if (key === '0' || key === 'c' || key === 'backspace') { delete markers[mapKey]; changed = true; }
     
     if (changed) {
+      e.preventDefault();
       saveMarkers();
+      
+      // Save current focus to restore it after render
+      const focusedBefore = document.activeElement && document.activeElement.classList.contains('item-chip') ? target : null;
+      
       if (selectedItem && selectedItem.name === target.name && selectedItem.quad === target.quad) {
         showDetail(target.name, target.quad);
       }
       render();
+      
+      // Restore focus
+      if (focusedBefore) {
+        const esc = focusedBefore.name.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        const newEl = document.querySelector('.item-chip[data-name="' + esc + '"][data-quad="' + focusedBefore.quad + '"]');
+        if (newEl) {
+          newEl.focus();
+          hoveredItem = { name: focusedBefore.name, quad: focusedBefore.quad };
+        }
+      }
       return;
     }
   }
