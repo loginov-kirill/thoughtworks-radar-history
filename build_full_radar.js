@@ -119,7 +119,7 @@ async function main() {
 
   // ── Generate HTML ─────────────────────────────────────────────────────────
   const html = buildHTML(embeddedData);
-  const outPath = path.join(__dirname, "radar_full.html");
+  const outPath = path.join(__dirname, "index.html");
   fs.writeFileSync(outPath, html, "utf-8");
   console.log(`Output: ${outPath}`);
 }
